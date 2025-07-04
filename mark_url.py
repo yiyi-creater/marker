@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, jsonify
+from flask import Flask, render_template_string, request, jsonify, send_file
 import csv
 import os
 from datetime import datetime
@@ -25,15 +25,30 @@ HTML_PAGE = """
   <meta charset="utf-8">
   <title>打标 Web 客户端</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; }
-    button { font-size: 1.5em; padding: 1em 2em; }
-    .log { margin-top: 1em; font-size: 1.2em; color: green; }
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    button {
+      font-size: 2.5em;
+      padding: 1em 2em;
+      border-radius: 12px;
+    }
+    .log {
+      margin-top: 2em;
+      font-size: 1.5em;
+      color: green;
+    }
   </style>
 </head>
 <body>
-  <h1>打标 Web 客户端</h1>
   <form action="/mark" method="post">
-    <button type="submit">打标</button>
+    <button type="submit">📍 打标</button>
   </form>
   <div class="log">{{ message }}</div>
 </body>
@@ -60,7 +75,13 @@ def mark():
             ef.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 打标失败: {e}\n")
         return render_template_string(HTML_PAGE, message=f"打标失败: {e}")
 
+@app.route("/download", methods=["GET"])
+def download():
+    if CSV_FILE.exists():
+        return send_file(CSV_FILE, as_attachment=True)
+    return "文件不存在", 404
+
 if __name__ == "__main__":
     import os
-    port = int(os.environ.get("PORT", 5000))  # Render 会自动设置 PORT 环境变量
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
