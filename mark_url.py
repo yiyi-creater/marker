@@ -119,6 +119,10 @@ HTML_PAGE = """
     <input type="number" name="new_id" placeholder="设置起始 ID" required style="font-size:1.2em; padding: 0.5em; margin-top:1em;">
     <button type="submit">设置 ID</button>
   </form>
+  
+  <form action="/delete_last" method="post">
+    <button type="submit" style="background-color:#dc3545;">删除上一条记录</button>
+  </form>
 
   <div class=\"log\">{{ message }}</div>
 
@@ -166,6 +170,22 @@ def download():
     if CSV_FILE.exists():
         return send_file(CSV_FILE, as_attachment=True)
     return "文件不存在", 404
+    
+@app.route("/delete_last", methods=["POST"])
+@requires_auth
+def delete_last():
+    try:
+        with open(CSV_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        if len(lines) <= 1:
+            msg = "没有可删除的记录"
+        else:
+            with open(CSV_FILE, "w", encoding="utf-8") as f:
+                f.writelines(lines[:-1])
+            msg = "上一条打标记录已删除"
+    except Exception as e:
+        msg = f"删除失败: {e}"
+    return render_template_string(HTML_PAGE, message=msg)
 
 if __name__ == "__main__":
     import os
