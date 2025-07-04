@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, jsonify, send_file, redirect, url_for
+from flask import Flask, render_template_string, request, jsonify, send_file, redirect, url_for, Response
 import csv
 import os
 from datetime import datetime
@@ -17,6 +17,29 @@ if not CSV_FILE.exists():
         writer.writerow(["mark_id", "timestamp", "is_simulated"])
 
 current_id = 1
+
+# 简单的用户名密码保护
+USERNAME = "zjbci"
+PASSWORD = "20250704"
+
+def check_auth(username, password):
+    return username == USERNAME and password == PASSWORD
+
+def authenticate():
+    return Response(
+        '需要登录才能访问此页面', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'}
+    )
+
+def requires_auth(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
 
 HTML_PAGE = """
 <!doctype html>
@@ -69,10 +92,12 @@ HTML_PAGE = """
 """
 
 @app.route("/", methods=["GET"])
+@requires_auth
 def index():
     return render_template_string(HTML_PAGE, message="")
 
 @app.route("/mark", methods=["POST"])
+@requires_auth
 def mark():
     global current_id
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -89,6 +114,7 @@ def mark():
         return render_template_string(HTML_PAGE, message=f"打标失败: {e}")
 
 @app.route("/set_id", methods=["POST"])
+@requires_auth
 def set_id():
     global current_id
     try:
@@ -100,6 +126,7 @@ def set_id():
         return render_template_string(HTML_PAGE, message=f"设置 ID 失败: {e}")
 
 @app.route("/download", methods=["GET"])
+@requires_auth
 def download():
     if CSV_FILE.exists():
         return send_file(CSV_FILE, as_attachment=True)
