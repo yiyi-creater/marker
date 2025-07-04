@@ -61,4 +61,6 @@ def mark():
         return render_template_string(HTML_PAGE, message=f"打标失败: {e}")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    import os
+    port = int(os.environ.get("PORT", 5000))  # Render 会自动设置 PORT 环境变量
+    app.run(host="0.0.0.0", port=port)
