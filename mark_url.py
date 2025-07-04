@@ -49,31 +49,65 @@ HTML_PAGE = """
   <title>打标 Web 客户端</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
+      padding: 1em;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 0.5em;
     }
     button {
-      font-size: 2em;
-      padding: 1em 2em;
+      font-size: 1.8em;
+      padding: 0.8em 2em;
       margin: 10px;
-      border-radius: 10px;
+      border-radius: 12px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background-color: #0056b3;
     }
     .log {
-      margin-top: 1em;
-      font-size: 1.5em;
-      color: green;
+      margin-top: 1.5em;
+      font-size: 1.3em;
+      color: #28a745;
+      text-align: center;
     }
     form {
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
+      max-width: 320px;
     }
-  </style>
+    input[type="number"] {
+      font-size: 1.2em;
+      padding: 0.5em;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 1em;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    a {
+      margin-top: 1em;
+      font-size: 1.2em;
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+</style>
 </head>
 <body>
   <h1>打标 Web 客户端</h1>
@@ -86,7 +120,9 @@ HTML_PAGE = """
     <button type="submit">设置 ID</button>
   </form>
 
-  <div class="log">{{ message }}</div>
+  <div class=\"log\">{{ message }}</div>
+
+  <a href=\"/download\" style=\"margin-top: 1em; font-size: 1.2em; color: blue; text-decoration: underline;\">⬇ 下载打标记录</a>
 </body>
 </html>
 """
@@ -126,7 +162,6 @@ def set_id():
         return render_template_string(HTML_PAGE, message=f"设置 ID 失败: {e}")
 
 @app.route("/download", methods=["GET"])
-@requires_auth
 def download():
     if CSV_FILE.exists():
         return send_file(CSV_FILE, as_attachment=True)
