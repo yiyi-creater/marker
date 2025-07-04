@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, jsonify, send_file
+from flask import Flask, render_template_string, request, jsonify, send_file, redirect, url_for
 import csv
 import os
 from datetime import datetime
@@ -35,21 +35,34 @@ HTML_PAGE = """
       margin: 0;
     }
     button {
-      font-size: 2.5em;
+      font-size: 2em;
       padding: 1em 2em;
-      border-radius: 12px;
+      margin: 10px;
+      border-radius: 10px;
     }
     .log {
-      margin-top: 2em;
+      margin-top: 1em;
       font-size: 1.5em;
       color: green;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
   </style>
 </head>
 <body>
+  <h1>打标 Web 客户端</h1>
   <form action="/mark" method="post">
     <button type="submit">📍 打标</button>
   </form>
+
+  <form action="/set_id" method="post">
+    <input type="number" name="new_id" placeholder="设置起始 ID" required style="font-size:1.2em; padding: 0.5em; margin-top:1em;">
+    <button type="submit">设置 ID</button>
+  </form>
+
   <div class="log">{{ message }}</div>
 </body>
 </html>
@@ -74,6 +87,17 @@ def mark():
         with open(ERROR_FILE, "a", encoding="utf-8") as ef:
             ef.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 打标失败: {e}\n")
         return render_template_string(HTML_PAGE, message=f"打标失败: {e}")
+
+@app.route("/set_id", methods=["POST"])
+def set_id():
+    global current_id
+    try:
+        new_id = int(request.form.get("new_id"))
+        current_id = new_id
+        msg = f"起始 ID 已设置为 {current_id}"
+        return render_template_string(HTML_PAGE, message=msg)
+    except Exception as e:
+        return render_template_string(HTML_PAGE, message=f"设置 ID 失败: {e}")
 
 @app.route("/download", methods=["GET"])
 def download():
