@@ -6,6 +6,10 @@ from pathlib import Path
 
 app = Flask(__name__)
 
+def render_with_files(message):
+    history_files = [f.name for f in SAVE_DIR.glob("daily_log_*.csv")]
+    return render_template_string(HTML_PAGE, message=message, history_files=history_files)
+
 SAVE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -189,7 +193,7 @@ HTML_PAGE = """
 @requires_auth
 def index():
     history_files = [f.name for f in SAVE_DIR.glob("daily_log_*.csv")]
-    return render_template_string(HTML_PAGE, message="", history_files=history_files)
+    return render_with_files("")
 
 @app.route("/mark", methods=["POST"])
 @requires_auth
@@ -203,11 +207,11 @@ def mark():
                 writer.writerow([current_id, now, 0])
         msg = f"打标成功 | ID: {current_id} | 时间: {now}"
         current_id += 1
-        return render_template_string(HTML_PAGE, message=msg)
+        return render_with_files(msg)
     except Exception as e:
         with open(ERROR_FILE, "a", encoding="utf-8") as ef:
             ef.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 打标失败: {e}\n")
-        return render_template_string(HTML_PAGE, message=f"打标失败: {e}")
+        return render_with_files(f"打标失败: {e}")
 
 @app.route("/set_id", methods=["POST"])
 @requires_auth
