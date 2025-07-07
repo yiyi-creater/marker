@@ -282,7 +282,7 @@ def delete_last():
             msg = "✅ 已删除今日最后一条记录"
     except Exception as e:
         msg = f"删除失败: {e}"
-    return render_template_string(HTML_PAGE, message=msg)
+    return render_with_files(msg)
 
 @app.route("/download_selected", methods=["POST"])
 @requires_auth
