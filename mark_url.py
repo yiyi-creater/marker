@@ -148,8 +148,12 @@ HTML_PAGE = """
 
   
 
-  <form action="/clear" method="post">
-    <button type="submit" style="background-color:#dc3545;">🗑 清空所有记录</button>
+  <form action="/clear_today" method="post">
+    <button type="submit" style="background-color:#fd7e14;">🧹 清空今日记录</button>
+</form>
+<form action="/clear" method="post">
+    <input type="password" name="confirm_password" placeholder="请输入密码确认" required style="margin-bottom:0.5em; padding:0.4em; width: 90%;">
+    <button type="submit" style="background-color:#dc3545;">🗑 清空总记录</button>
 </form>
 <form action="/delete_last" method="post">
     <button type="submit" style="background-color:#ff8800;">撤销今日最后一条</button>
@@ -233,13 +237,28 @@ def download_today():
 @app.route("/clear", methods=["POST"])
 @requires_auth
 def clear_log():
-    global current_id
+    password = request.form.get("confirm_password")
+    if password != "wyq345760":
+        msg = "❌ 清空失败：密码错误"
+        return render_template_string(HTML_PAGE, message=msg)
     try:
         with open(CSV_FILE, "w", newline='', encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["mark_id", "timestamp", "is_simulated"])
-        current_id = 1
-        msg = "✅ 打标记录已清空"
+        msg = "✅ 总记录已清空"
+    except Exception as e:
+        msg = f"清空失败: {e}"
+    return render_template_string(HTML_PAGE, message=msg)
+
+
+@app.route("/clear_today", methods=["POST"])
+@requires_auth
+def clear_today():
+    try:
+        with open(DAILY_FILE, "w", newline='', encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["mark_id", "timestamp", "is_simulated"])
+        msg = "✅ 今日记录已清空"
     except Exception as e:
         msg = f"清空失败: {e}"
     return render_template_string(HTML_PAGE, message=msg)
