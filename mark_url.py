@@ -244,7 +244,7 @@ def clear_log():
     password = request.form.get("confirm_password")
     if password != "wyq345760":
         msg = "❌ 清空失败：密码错误"
-        return render_template_string(HTML_PAGE, message=msg)
+        return render_with_files(msg)
     try:
         with open(CSV_FILE, "w", newline='', encoding="utf-8") as f:
             writer = csv.writer(f)
@@ -291,7 +291,7 @@ def download_selected():
     from io import BytesIO
     selected = request.form.getlist("dates")
     if not selected:
-        return render_template_string(HTML_PAGE, message="请选择至少一个文件")
+        return render_with_files("请选择至少一个文件")
     zip_buffer = BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
         for filename in selected:
