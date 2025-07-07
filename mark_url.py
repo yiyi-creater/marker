@@ -8,13 +8,21 @@ app = Flask(__name__)
 
 SAVE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
+
+# 总记录文件（不分日期，始终追加）
 CSV_FILE = SAVE_DIR / "mark_log.csv"
+# 每日记录文件（按天存）
+today_str = datetime.now().strftime("%Y-%m-%d")
+DAILY_FILE = SAVE_DIR / f"daily_log_{today_str}.csv"
+
 ERROR_FILE = SAVE_DIR / "error_log.txt"
 
-if not CSV_FILE.exists():
-    with open(CSV_FILE, "w", newline='', encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["mark_id", "timestamp", "is_simulated"])
+# 初始化文件头
+for file in [CSV_FILE, DAILY_FILE]:
+    if not file.exists():
+        with open(file, "w", newline='', encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["mark_id", "timestamp", "is_simulated"])
 
 current_id = 1
 
@@ -119,14 +127,29 @@ HTML_PAGE = """
     <input type="number" name="new_id" placeholder="设置起始 ID" required style="font-size:1.2em; padding: 0.5em; margin-top:1em;">
     <button type="submit">设置 ID</button>
   </form>
-  
+
+  <form action="/clear" method="post">
+    <button type="submit" style="background-color:#dc3545;">🗑 清空所有记录</button>
+  </form>
+
   <form action="/delete_last" method="post">
-    <button type="submit" style="background-color:#dc3545;">删除上一条记录</button>
+    <button type="submit" style="background-color:#ff8800;">撤销今日最后一条</button>
   </form>
 
   <div class=\"log\">{{ message }}</div>
 
-  <a href=\"/download\" style=\"margin-top: 1em; font-size: 1.2em; color: blue; text-decoration: underline;\">⬇ 下载打标记录</a>
+  <a href="/download" style="margin-top: 1em; font-size: 1.2em; color: blue; text-decoration: underline;">⬇ 下载总记录</a>
+  <a href="/download_today" style="margin-top: 0.5em; font-size: 1.2em; color: green; text-decoration: underline;">⬇ 下载今日记录</a>
+</body>
+  <form action="/download_selected" method="post">
+    <label style="margin-top: 1em; font-size: 1em;">选择要下载的日期（可多选）</label>
+    <select name="dates" multiple size="5" style="margin-top: 0.5em; padding: 0.5em; font-size: 1em; width: 90%; max-width: 300px;">
+      {% for file in history_files %}
+        <option value="{{ file }}">{{ file }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" style="margin-top: 0.5em; background-color: #555;">⬇ 批量下载选中记录</button>
+  </form>
 </body>
 </html>
 """
@@ -134,7 +157,8 @@ HTML_PAGE = """
 @app.route("/", methods=["GET"])
 @requires_auth
 def index():
-    return render_template_string(HTML_PAGE, message="")
+    history_files = [f.name for f in SAVE_DIR.glob("daily_log_*.csv")]
+    return render_template_string(HTML_PAGE, message="", history_files=history_files)
 
 @app.route("/mark", methods=["POST"])
 @requires_auth
@@ -142,9 +166,10 @@ def mark():
     global current_id
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     try:
-        with open(CSV_FILE, "a", newline='', encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow([current_id, now, 0])
+        for file in [CSV_FILE, DAILY_FILE]:
+            with open(file, "a", newline='', encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow([current_id, now, 0])
         msg = f"打标成功 | ID: {current_id} | 时间: {now}"
         current_id += 1
         return render_template_string(HTML_PAGE, message=msg)
@@ -170,24 +195,64 @@ def download():
     if CSV_FILE.exists():
         return send_file(CSV_FILE, as_attachment=True)
     return "文件不存在", 404
-    
+
+@app.route("/download_today", methods=["GET"])
+def download_today():
+    if DAILY_FILE.exists():
+        return send_file(DAILY_FILE, as_attachment=True)
+    return "今日记录不存在", 404
+    return "文件不存在", 404
+
+@app.route("/clear", methods=["POST"])
+@requires_auth
+def clear_log():
+    global current_id
+    try:
+        with open(CSV_FILE, "w", newline='', encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["mark_id", "timestamp", "is_simulated"])
+        current_id = 1
+        msg = "✅ 打标记录已清空"
+    except Exception as e:
+        msg = f"清空失败: {e}"
+    return render_template_string(HTML_PAGE, message=msg)
+
 @app.route("/delete_last", methods=["POST"])
 @requires_auth
 def delete_last():
     try:
-        with open(CSV_FILE, "r", encoding="utf-8") as f:
+        with open(DAILY_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
         if len(lines) <= 1:
             msg = "没有可删除的记录"
         else:
-            with open(CSV_FILE, "w", encoding="utf-8") as f:
+            with open(DAILY_FILE, "w", encoding="utf-8") as f:
                 f.writelines(lines[:-1])
-            msg = "上一条打标记录已删除"
+            msg = "✅ 已删除今日最后一条记录"
     except Exception as e:
         msg = f"删除失败: {e}"
     return render_template_string(HTML_PAGE, message=msg)
 
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+@app.route("/download_selected", methods=["POST"])
+@requires_auth
+def download_selected():
+    from flask import make_response
+    import zipfile
+    from io import BytesIO
+    selected = request.form.getlist("dates")
+    if not selected:
+        return render_template_string(HTML_PAGE, message="请选择至少一个文件")
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        for filename in selected:
+            file_path = SAVE_DIR / filename
+            if file_path.exists():
+                zip_file.write(file_path, arcname=filename)
+    zip_buffer.seek(0)
+    response = make_response(zip_buffer.read())
+    response.headers['Content-Type'] = 'application/zip'
+    response.headers['Content-Disposition'] = 'attachment; filename=selected_logs.zip'
+    return response
+
+
+if __name__ == __main__:
