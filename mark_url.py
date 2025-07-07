@@ -199,7 +199,8 @@ def index():
 @requires_auth
 def mark():
     global current_id
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    from datetime import timedelta
+    now = (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
     try:
         for file in [CSV_FILE, DAILY_FILE]:
             with open(file, "a", newline='', encoding="utf-8") as f:
@@ -265,7 +266,7 @@ def clear_today():
         msg = "✅ 今日记录已清空"
     except Exception as e:
         msg = f"清空失败: {e}"
-    return render_template_string(HTML_PAGE, message=msg)
+    return render_with_files(msg)
 
 @app.route("/delete_last", methods=["POST"])
 @requires_auth
