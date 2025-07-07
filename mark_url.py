@@ -146,10 +146,7 @@ HTML_PAGE = """
     <button type="submit">设置 ID</button>
 </form>
 
-  <form action="/set_id" method="post">
-    <input type="number" name="new_id" placeholder="设置起始 ID" required style="font-size:1.2em; padding: 0.5em; margin-top:1em;">
-    <button type="submit">设置 ID</button>
-  </form>
+  
 
   <form action="/clear" method="post">
     <button type="submit" style="background-color:#dc3545;">🗑 清空所有记录</button>
@@ -166,8 +163,7 @@ HTML_PAGE = """
   </div>
   <div class=\"log\">{{ message }}</div>
 
-  <a href="/download" style="margin-top: 1em; font-size: 1.2em; color: blue; text-decoration: underline;">⬇ 下载总记录</a>
-  <a href="/download_today" style="margin-top: 0.5em; font-size: 1.2em; color: green; text-decoration: underline;">⬇ 下载今日记录</a>
+  
 </body>
   </div>
 <div class="container">
