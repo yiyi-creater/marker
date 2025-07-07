@@ -252,7 +252,7 @@ def clear_log():
         msg = "✅ 总记录已清空"
     except Exception as e:
         msg = f"清空失败: {e}"
-    return render_template_string(HTML_PAGE, message=msg)
+    return render_with_files(msg)
 
 
 @app.route("/clear_today", methods=["POST"])
