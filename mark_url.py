@@ -1,4 +1,5 @@
 from flask import Flask, render_template_string, request, jsonify, send_file, redirect, url_for, Response
+from datetime import timedelta
 import csv
 import os
 from datetime import datetime
@@ -199,7 +200,7 @@ def index():
 @requires_auth
 def mark():
     global current_id
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
     try:
         for file in [CSV_FILE, DAILY_FILE]:
             with open(file, "a", newline='', encoding="utf-8") as f:
