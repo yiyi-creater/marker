@@ -58,66 +58,85 @@ HTML_PAGE = """
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       margin: 0;
-      padding: 1em;
-      background-color: #f9f9f9;
+      padding: 0;
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 2em 1em;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1em;
     }
     h1 {
-      font-size: 1.8em;
-      margin-bottom: 0.5em;
-    }
-    button {
-      font-size: 1.8em;
-      padding: 0.8em 2em;
-      margin: 10px;
-      border-radius: 12px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .log {
-      margin-top: 1.5em;
-      font-size: 1.3em;
-      color: #28a745;
       text-align: center;
+      font-size: 2em;
+      margin-bottom: 1em;
     }
     form {
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 100%;
-      max-width: 320px;
+      padding: 1em;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      width: 280px;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 0.6em 1em;
+      border-radius: 10px;
+      border: none;
+      margin-top: 0.5em;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
     }
     input[type="number"] {
-      font-size: 1.2em;
-      padding: 0.5em;
-      width: 100%;
-      box-sizing: border-box;
-      margin-top: 1em;
-      border-radius: 8px;
+      font-size: 1em;
+      padding: 0.4em;
+      margin: 0.5em 0;
+      border-radius: 6px;
       border: 1px solid #ccc;
+      width: 100%;
     }
     a {
-      margin-top: 1em;
-      font-size: 1.2em;
+      display: inline-block;
+      text-align: center;
+      margin-top: 0.5em;
+      font-size: 1em;
       color: #007bff;
       text-decoration: none;
     }
     a:hover {
       text-decoration: underline;
     }
-</style>
+    .log {
+      text-align: center;
+      font-size: 1.1em;
+      color: #28a745;
+      margin-top: 1em;
+      width: 100%;
+    }
+    select {
+      width: 100%;
+      padding: 0.4em;
+      margin-top: 0.5em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 <body>
+  
+  <div class="container">
   <h1>打标 Web 客户端</h1>
   <form action="/mark" method="post">
     <button type="submit">📍 打标</button>
@@ -135,12 +154,14 @@ HTML_PAGE = """
   <form action="/delete_last" method="post">
     <button type="submit" style="background-color:#ff8800;">撤销今日最后一条</button>
   </form>
-
+  </div>
   <div class=\"log\">{{ message }}</div>
 
   <a href="/download" style="margin-top: 1em; font-size: 1.2em; color: blue; text-decoration: underline;">⬇ 下载总记录</a>
   <a href="/download_today" style="margin-top: 0.5em; font-size: 1.2em; color: green; text-decoration: underline;">⬇ 下载今日记录</a>
 </body>
+  </div>
+<div class="container">
   <form action="/download_selected" method="post">
     <label style="margin-top: 1em; font-size: 1em;">选择要下载的日期（可多选）</label>
     <select name="dates" multiple size="5" style="margin-top: 0.5em; padding: 0.5em; font-size: 1em; width: 90%; max-width: 300px;">
@@ -150,6 +171,7 @@ HTML_PAGE = """
     </select>
     <button type="submit" style="margin-top: 0.5em; background-color: #555;">⬇ 批量下载选中记录</button>
   </form>
+</div>
 </body>
 </html>
 """
