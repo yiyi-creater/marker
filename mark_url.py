@@ -1,5 +1,4 @@
 from flask import Flask, render_template_string, request, jsonify, send_file, redirect, url_for, Response
-from datetime import timedelta
 import csv
 import os
 from datetime import datetime
@@ -200,7 +199,7 @@ def index():
 @requires_auth
 def mark():
     global current_id
-    now = (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     try:
         for file in [CSV_FILE, DAILY_FILE]:
             with open(file, "a", newline='', encoding="utf-8") as f:
@@ -222,9 +221,9 @@ def set_id():
         new_id = int(request.form.get("new_id"))
         current_id = new_id
         msg = f"起始 ID 已设置为 {current_id}"
-        return render_template_string(HTML_PAGE, message=msg)
+        return render_with_files(msg)
     except Exception as e:
-        return render_template_string(HTML_PAGE, message=f"设置 ID 失败: {e}")
+        return render_with_files(f"设置 ID 失败: {e}")
 
 @app.route("/download", methods=["GET"])
 def download():
