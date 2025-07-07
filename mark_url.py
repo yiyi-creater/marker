@@ -135,12 +135,16 @@ HTML_PAGE = """
   </style>
 </head>
 <body>
-  
-  <div class="container">
+  <h1 style="text-align:center; font-size: 2em; padding-top: 1em;">打标 Web 客户端</h1>
+  <div class="container" style="flex-wrap: wrap; justify-content: center; gap: 2em;">
   <h1>打标 Web 客户端</h1>
   <form action="/mark" method="post">
-    <button type="submit">📍 打标</button>
-  </form>
+    <button type="submit" style="font-size: 2em; padding: 1em 2em; background-color: #28a745;">📍 打标</button>
+</form>
+<form action="/set_id" method="post">
+    <input type="number" name="new_id" placeholder="设置起始 ID" required>
+    <button type="submit">设置 ID</button>
+</form>
 
   <form action="/set_id" method="post">
     <input type="number" name="new_id" placeholder="设置起始 ID" required style="font-size:1.2em; padding: 0.5em; margin-top:1em;">
@@ -149,11 +153,16 @@ HTML_PAGE = """
 
   <form action="/clear" method="post">
     <button type="submit" style="background-color:#dc3545;">🗑 清空所有记录</button>
-  </form>
-
-  <form action="/delete_last" method="post">
+</form>
+<form action="/delete_last" method="post">
     <button type="submit" style="background-color:#ff8800;">撤销今日最后一条</button>
-  </form>
+</form>
+<form action="/download" method="get">
+    <button type="submit" style="background-color:#007bff;">⬇ 下载总记录</button>
+</form>
+<form action="/download_today" method="get">
+    <button type="submit" style="background-color:#17a2b8;">⬇ 下载今日记录</button>
+</form>
   </div>
   <div class=\"log\">{{ message }}</div>
 
@@ -164,13 +173,13 @@ HTML_PAGE = """
 <div class="container">
   <form action="/download_selected" method="post">
     <label style="margin-top: 1em; font-size: 1em;">选择要下载的日期（可多选）</label>
-    <select name="dates" multiple size="5" style="margin-top: 0.5em; padding: 0.5em; font-size: 1em; width: 90%; max-width: 300px;">
+    <select name="dates" multiple size="5">
       {% for file in history_files %}
         <option value="{{ file }}">{{ file }}</option>
       {% endfor %}
     </select>
     <button type="submit" style="margin-top: 0.5em; background-color: #555;">⬇ 批量下载选中记录</button>
-  </form>
+</form>
 </div>
 </body>
 </html>
